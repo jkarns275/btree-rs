@@ -2,6 +2,8 @@
 name = "btree"
 version = "0.1.0"
 authors = ["Josh Karns <jkarns275@gmail.com>"]
+description = "A generic persistant BTree, using the RawSerde crate"
+license = "MIT"
 
 [dependencies]
 raw_serde = "0.1.4"
