@@ -1,6 +1,6 @@
 use std;
 use std::fs::File;
-use std::io::{ Error, Seek, SeekFrom };
+use std::io::{ Read, Write, Error, Seek, SeekFrom };
 use std::collections::HashMap;
 use raw_serde::*;
 use btree::*;
@@ -69,7 +69,7 @@ impl Eq for Freq {}
 
 
 pub struct NodeCache {
-    size: usize,
+    pub size: usize,
     freqs: PriorityQueue<Freq>,
     nodes: HashMap<u64, Node>
 }
@@ -83,7 +83,7 @@ impl NodeCache {
         }
     }
 
-    pub fn get(&mut self, node_loc: u64, file: &mut File) -> Result<Node, io::Error> {
+    pub fn get<F: Read + Write + Seek>(&mut self, node_loc: u64, file: &mut F) -> Result<Node, io::Error> {
         if self.nodes.contains_key(&node_loc) {
             if self.freqs.update_key(Freq::new(node_loc), |x| x.freq += 1).is_err() {
                 unreachable!();
@@ -111,7 +111,7 @@ impl NodeCache {
         }
     }
 
-    fn read_node(pos: u64, file: &mut File) -> Result<Node, Error> {
+    fn read_node<F: Read + Write + Seek>(pos: u64, file: &mut F) -> Result<Node, Error> {
         check!(file.seek(SeekFrom::Start(pos)));
         Node::raw_deserialize(file)
     }

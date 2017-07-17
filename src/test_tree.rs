@@ -13,10 +13,10 @@ pub const NUM_KEYS: usize = NUM_CHILDREN - 1;
 
 pub const NONE: u64 = 0xFFFFFFFFFFFFFFFFu64;
 
-pub struct PBTree<K, V> {
-    pub treefile: BufFile,
-    pub keyfile: BufFile,
-    pub valfile: BufFile,
+pub struct TestTree<K, V> {
+    pub treefile: File,
+    pub keyfile: File,
+    pub valfile: File,
     root_location: u64,
     pub root: Node,
     node_cache: NodeCache,
@@ -24,27 +24,21 @@ pub struct PBTree<K, V> {
     phantom_v: PhantomData<V>
 }
 
-impl<K, V> PBTree<K, V>
+impl<K, V> TestTree<K, V>
     where   K: RawSerialize + RawDeserialize + Eq + Ord + Debug,
             V: RawSerialize + RawDeserialize + Debug {
 
     pub fn new<S: Into<String>>(_path: S) -> Result<Self, Error> {
         let path = _path.into();
 
-        let mut _treefile;
-        check!(OpenOptions::new().read(true).write(true).truncate(true).create(true).open(path.clone() + ".tree"), _treefile);
         let mut treefile;
-        check!(BufFile::new(_treefile), treefile);
+        check!(OpenOptions::new().read(true).write(true).truncate(true).create(true).open(path.clone() + ".tree"), treefile);
 
-        let _keyfile;
-        check!(OpenOptions::new().read(true).write(true).truncate(true).create(true).open(path.clone() + ".key"), _keyfile);
-        let mut keyfile;
-        check!(BufFile::new(_keyfile), keyfile);
+        let keyfile;
+        check!(OpenOptions::new().read(true).write(true).truncate(true).create(true).open(path.clone() + ".key"), keyfile);
 
-        let _valfile;
-        check!(OpenOptions::new().read(true).write(true).truncate(true).create(true).open(path.clone() + ".val"), _valfile);
-        let mut valfile;
-        check!(BufFile::new(_valfile), valfile);
+        let valfile;
+        check!(OpenOptions::new().read(true).write(true).truncate(true).create(true).open(path.clone() + ".val"), valfile);
 
         let mut root = Node::new();
         root.loc = 8;
@@ -54,7 +48,7 @@ impl<K, V> PBTree<K, V>
         // Write the first node, at the second 8 bytes of the treefile
         check!(root.raw_serialize(&mut treefile));
 
-        Ok(PBTree {
+        Ok(TestTree {
             keyfile,
             valfile,
             treefile,
@@ -73,20 +67,15 @@ impl<K, V> PBTree<K, V>
     pub fn open<S: Into<String>>(_path: S) -> Result<Self, Error> {
         let path = _path.into();
 
-        let mut _treefile;
-        check!(OpenOptions::new().read(true).write(true).truncate(true).create(true).open(path.clone() + ".tree"), _treefile);
         let mut treefile;
-        check!(BufFile::new(_treefile), treefile);
+        check!(OpenOptions::new().read(true).write(true).truncate(true).create(true).open(path.clone() + ".tree"), treefile);
 
-        let _keyfile;
-        check!(OpenOptions::new().read(true).write(true).truncate(true).create(true).open(path.clone() + ".key"), _keyfile);
-        let mut keyfile;
-        check!(BufFile::new(_keyfile), keyfile);
+        let keyfile;
+        check!(OpenOptions::new().read(true).write(true).truncate(true).create(true).open(path.clone() + ".key"), keyfile);
 
-        let _valfile;
-        check!(OpenOptions::new().read(true).write(true).truncate(true).create(true).open(path.clone() + ".val"), _valfile);
-        let mut valfile;
-        check!(BufFile::new(_valfile), valfile);
+        let valfile;
+        check!(OpenOptions::new().read(true).write(true).truncate(true).create(true).open(path.clone() + ".val"), valfile);
+
 
         let root_location;
         check!(u64::raw_deserialize(&mut treefile), root_location);
@@ -95,7 +84,7 @@ impl<K, V> PBTree<K, V>
         let root;
         check!(Node::raw_deserialize(&mut treefile), root);
 
-        Ok(PBTree {
+        Ok(TestTree {
             keyfile,
             valfile,
             treefile,
